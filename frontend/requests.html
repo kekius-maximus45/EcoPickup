@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Requests | EcoPickup</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="brand-mark">♻</span>EcoPickup</a>
+    <button class="menu-toggle">☰</button>
+    <nav class="main-nav">
+      <a data-role-dashboard href="seller-dashboard.html">Dashboard</a>
+      <a href="marketplace.html">Marketplace</a>
+      <a href="index.html">Home</a>
+    </nav>
+  </header>
+
+  <section class="page-hero">
+    <div class="section-shell">
+      <span class="breadcrumb"><a data-role-dashboard href="seller-dashboard.html">Dashboard</a> / Requests</span>
+      <h1>Requests</h1>
+      <p>Loading your account requests...</p>
+    </div>
+  </section>
+
+  <main class="section section-shell">
+    <div class="panel">
+      <div class="panel-heading">
+        <h2>Requests</h2>
+        <span class="status-badge pending" data-request-count>Loading...</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Request</th><th>Item</th><th>Status</th></tr></thead>
+          <tbody><tr><td colspan="6"><div class="empty-state">Loading requests...</div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="notice" style="margin-top:20px">Pickup scheduling becomes available after the seller accepts an item request.</div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
