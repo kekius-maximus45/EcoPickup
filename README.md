@@ -162,6 +162,51 @@ Normal accounts can switch between Buying and Selling modes. The names above des
 
 You can also create a new account from the Signup page.
 
+## Two-step verification
+
+Login now has two steps:
+
+1. Enter the account email and password.
+2. Enter the one-time 6-digit verification code.
+
+The verification code is delivered only by email and is never displayed in the browser. It expires after five minutes, permits no more than five incorrect attempts, and can only be used once.
+
+### Send the OTP by real email
+
+Each developer must create a private `backend/.env` file. From the repository root:
+
+```powershell
+Copy-Item backend\.env.example backend\.env
+notepad backend\.env
+```
+
+Replace the placeholder values in `.env`:
+
+```properties
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-16-character-google-app-password
+MAIL_FROM=your-email@gmail.com
+MAIL_SMTP_AUTH=true
+MAIL_STARTTLS=true
+```
+
+Do not put quotation marks around these values. `MAIL_USERNAME` and `MAIL_FROM` should normally contain the same sender address.
+
+Then start the application from the `backend` directory so Spring Boot finds that file:
+
+```powershell
+cd backend
+.\mvnw.cmd spring-boot:run
+```
+
+For Gmail, enable Google 2-Step Verification and create a Google **App Password**. Use that 16-character value for `MAIL_PASSWORD`, not the normal Gmail password. The `.env` file is ignored by Git and must never be uploaded, shared, or committed. Only `.env.example`, which contains placeholders, belongs in the repository.
+
+The sender configured in `.env` sends OTPs to the real email address entered by each user during signup. Sample addresses such as `aarav@example.com` cannot receive mail, so create a new account with an inbox you can access when testing two-step verification.
+
+Spring Boot can still use operating-system environment variables or hosting-platform secrets in production; those values override the local file.
+
 ## How the frontend connects to the backend
 
 The project does not need React to communicate with Spring Boot.
@@ -196,14 +241,41 @@ Seller accepts or rejects the request
                 ↓
 Accepted request receives a pickup schedule
                 ↓
-Admin assigns a collector (future phase)
+Buyer/recycler assigns its collection person or team
                 ↓
-Item is collected, inspected, and processed
+Buyer/recycler collects and inspects the item
                 ↓
-Eligible reward/payment is completed
+Final value and UPI, cash, or bank payment are recorded
+                ↓
+Item is sent for reuse, refurbishment, or recycling
+                ↓
+Buyer/recycler marks processing completed
 ```
 
 A user cannot send a buying request for their own listing.
+
+### Pickup and payment demonstration
+
+1. Log in to Account A, switch to **Buying**, open another seller's item and send a request.
+2. Log in to Account B in a separate browser, stay in **Selling**, open **Requests**, accept the request and schedule the pickup.
+3. Return to Account A, open **My Requests → Track pickup**, and assign a collector or collection team.
+4. On the same tracking page, enter the inspected final value and select **UPI**, **Cash**, or **Bank Transfer**. Confirm the handover only after the demo payment is considered complete.
+5. Return to Account B and open **Requests → Track pickup**. The seller sees the same collected status, final paid value, method and completed payment status.
+6. Account A can then mark responsible processing as completed. Both accounts see the completed timeline.
+
+The current project records payment details for demonstration; it does not transfer real money. A payout provider such as RazorpayX can replace this simulated confirmation in a future production phase.
+
+## Item photo storage
+
+Sellers can upload one primary JPG, PNG, or WebP photo of up to 5 MB while creating a listing. Spring Boot stores the file locally in:
+
+```text
+backend/uploads/items/
+```
+
+The database stores only its generated `/uploads/items/...` URL. The upload directory is excluded from Git, so developers who clone the repository start with no uploaded photos. Existing demo listings use category icons until a photo is uploaded.
+
+For deployment, set `UPLOAD_DIR` to a persistent server directory. A production version can replace local storage with Cloudinary, Amazon S3, or another object-storage service.
 
 ## Database
 
@@ -258,7 +330,8 @@ Run it on macOS or Linux:
 | Method | Endpoint | Purpose |
 |---|---|---|
 | POST | `/api/auth/signup` | Create an account |
-| POST | `/api/auth/login` | Log in |
+| POST | `/api/auth/login` | Check password and request an OTP |
+| POST | `/api/auth/verify-otp` | Verify the OTP and finish login |
 | GET | `/api/items` | Browse listings |
 | POST | `/api/items` | Publish a listing |
 | GET | `/api/items/{id}` | View item details |
@@ -339,7 +412,7 @@ The current version implements the main marketplace, request, scheduling, and tr
 - Administrator and collector login flows
 - Collector assignment and status controls
 - Image upload and file storage
-- Email, SMS, and push notifications
+- SMS and push notifications
 - UPI or bank-transfer reward processing
 - Pickup OTP verification
 - Listing moderation

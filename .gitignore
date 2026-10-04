@@ -5,6 +5,10 @@ backend/target/
 
 # Local databases (created automatically when the app starts)
 backend/data/
+backend/uploads/
+
+# Developer secrets. Commit backend/.env.example, never backend/.env.
+backend/.env
 *.mv.db
 *.lock.db
 *.trace.db

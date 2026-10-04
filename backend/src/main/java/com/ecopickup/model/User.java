@@ -11,7 +11,9 @@ public class User {
     @Column(nullable = false, unique = true) private String email;
     @Column(nullable = false) private String phone;
     @JsonIgnore @Column(nullable = false) private String password;
-    @Enumerated(EnumType.STRING) @Column(nullable = false) private UserType userType;
+    // Store the enum as text instead of a database-native ENUM. This keeps existing
+    // databases compatible when account modes such as BOTH are added later.
+    @Enumerated(EnumType.STRING) @Column(nullable = false, columnDefinition = "varchar(20)") private UserType userType;
     @Column(nullable = false) private String location;
     @Column(nullable = false, updatable = false) private LocalDateTime createdAt = LocalDateTime.now();
 

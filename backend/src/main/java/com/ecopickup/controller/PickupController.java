@@ -34,6 +34,14 @@ public class PickupController {
         if(input.status()==PickupStatus.PROCESSING_COMPLETED){pickup.getRequest().setStatus(RequestStatus.COMPLETED);pickup.getRequest().getItem().setStatus(ItemStatus.COMPLETED);requests.save(pickup.getRequest());}
         return pickups.save(pickup);
     }
+    @PostMapping("/{id}/handover") @Transactional
+    public Pickup completeHandover(@PathVariable String id,@Valid @RequestBody CompleteHandoverRequest input){
+        Pickup pickup=find(id);
+        if(pickup.getStatus()!=PickupStatus.COLLECTOR_ASSIGNED) throw new IllegalStateException("Assign a collector before completing the handover");
+        Reward reward=rewards.findByPickupId(pickup.getId()).orElseThrow(()->new NoSuchElementException("Reward record not found"));
+        reward.setFinalApprovedValue(input.finalApprovedValue());reward.setPaymentMethod(input.paymentMethod());reward.setPaymentStatus(PaymentStatus.COMPLETED);rewards.save(reward);
+        pickup.setStatus(PickupStatus.PICKED_UP);return pickups.save(pickup);
+    }
     private Pickup find(String id){return pickups.findById(id.toUpperCase()).orElseThrow(()->new NoSuchElementException("Pickup not found"));}
     private String nextId(){int number=1025+(int)pickups.count();String id="EW"+number;while(pickups.existsById(id))id="EW"+(++number);return id;}
 }

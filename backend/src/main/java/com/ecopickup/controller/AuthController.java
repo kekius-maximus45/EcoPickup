@@ -3,6 +3,7 @@ package com.ecopickup.controller;
 import com.ecopickup.dto.AuthDtos.*;
 import com.ecopickup.model.User;
 import com.ecopickup.repository.UserRepository;
+import com.ecopickup.service.OtpService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,8 +12,8 @@ import java.util.NoSuchElementException;
 
 @RestController @RequestMapping("/api/auth")
 public class AuthController {
-    private final UserRepository users; private final PasswordEncoder passwords;
-    public AuthController(UserRepository users,PasswordEncoder passwords){this.users=users;this.passwords=passwords;}
+    private final UserRepository users; private final PasswordEncoder passwords; private final OtpService otpService;
+    public AuthController(UserRepository users,PasswordEncoder passwords,OtpService otpService){this.users=users;this.passwords=passwords;this.otpService=otpService;}
 
     @PostMapping("/signup") @ResponseStatus(HttpStatus.CREATED)
     public UserResponse signup(@Valid @RequestBody SignupRequest input){
@@ -21,10 +22,12 @@ public class AuthController {
         return response(user);
     }
     @PostMapping("/login")
-    public UserResponse login(@Valid @RequestBody LoginRequest input){
+    public LoginChallengeResponse login(@Valid @RequestBody LoginRequest input){
         User user=users.findByEmailIgnoreCase(input.email()).orElseThrow(()->new NoSuchElementException("Account not found"));
         if(!passwords.matches(input.password(),user.getPassword())) throw new IllegalArgumentException("Incorrect password");
-        return response(user);
+        return otpService.createChallenge(user);
     }
+    @PostMapping("/verify-otp")
+    public UserResponse verifyOtp(@Valid @RequestBody VerifyOtpRequest input){return response(otpService.verify(input.challengeId(),input.code()));}
     private UserResponse response(User u){return new UserResponse(u.getId(),u.getName(),u.getEmail(),u.getPhone(),u.getUserType(),u.getLocation());}
 }

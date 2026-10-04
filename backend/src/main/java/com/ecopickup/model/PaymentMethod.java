@@ -1,2 +1,2 @@
 package com.ecopickup.model;
-public enum PaymentMethod { UPI, BANK_TRANSFER }
+public enum PaymentMethod { UPI, CASH, BANK_TRANSFER }
